@@ -8,16 +8,20 @@ import (
 	"go.uber.org/fx"
 )
 
-type SampleA struct {
-	Id string
-}
-
 type Config struct {
 	Id int
 }
 
-func NewA(s string) SampleA {
-	return SampleA{Id: s}
+type SampleA struct {
+	Id string
+}
+
+type SampleB struct {
+	Id string
+}
+
+func NewB(s string) SampleB {
+	return SampleB{Id: s}
 }
 
 func NewAFromConfig(c Config) SampleA {
@@ -28,7 +32,11 @@ func CallSampleA(i SampleA) {
 	fmt.Println(i.Id)
 }
 
-func GenerateConfig(lc fx.Lifecycle) Config {
+func CallSampleB(i SampleB) {
+	fmt.Println(i.Id)
+}
+
+func NewConfig(lc fx.Lifecycle) Config {
 	lc.Append(fx.Hook{
 		OnStart: func(context.Context) error {
 			fmt.Println("start hook")
@@ -44,12 +52,16 @@ func GenerateConfig(lc fx.Lifecycle) Config {
 
 func main() {
 	fx.New(
-		fx.Supply("example"),
+		fx.Supply("example B"), // Provides bare string which will be used for B constructor
 		fx.Provide(
-			GenerateConfig,
+			NewB,
+			NewConfig,
 			NewAFromConfig,
 		),
-		fx.Invoke(CallSampleA),
+		fx.Invoke(
+			CallSampleA,
+			CallSampleB,
+		),
 		Submodule(),
 		SecondSubmodule(),
 	).Run()
