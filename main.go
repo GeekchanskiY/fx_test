@@ -31,8 +31,8 @@ func main() {
 func Submodule() fx.Option {
 	return fx.Module(
 		"sampleMod",
-		fx.Decorate(func(s SampleA) SampleA {
-			return SampleA{Id: s.Id + "2"}
+		fx.Decorate(func() SampleA {
+			return SampleA{Id: "2"} // Just updates the dependency
 		}),
 		fx.Invoke(CallSampleA), // Gets it from parent module, and decorates
 		SubSubmodule(),         // Gets decorated dependencies
