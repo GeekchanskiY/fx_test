@@ -24,12 +24,35 @@ func main() {
 		fx.Provide(NewA),
 		fx.Invoke(CallSampleA),
 		Submodule(),
+		SecondSubmodule(),
 	).Run()
 }
 
 func Submodule() fx.Option {
 	return fx.Module(
 		"sampleMod",
+		fx.Decorate(func(s SampleA) SampleA {
+			return SampleA{Id: s.Id + "2"}
+		}),
+		fx.Invoke(CallSampleA), // Gets it from parent module, and decorates
+		SubSubmodule(),         // Gets decorated dependencies
+	)
+}
+
+func SubSubmodule() fx.Option {
+	return fx.Module(
+		"sampleMod",
+		fx.Decorate(func(s SampleA) SampleA {
+			return SampleA{Id: "submodule_call: " + s.Id}
+		}),
+		fx.Invoke(CallSampleA),
+	)
+}
+
+func SecondSubmodule() fx.Option {
+	return fx.Module(
+		"sampleMod2",
 		fx.Invoke(CallSampleA), // Gets it from parent module
+		SubSubmodule(),
 	)
 }
