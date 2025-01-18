@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"strconv"
 
 	"go.uber.org/fx"
 )
@@ -10,18 +12,43 @@ type SampleA struct {
 	Id string
 }
 
+type Config struct {
+	Id int
+}
+
 func NewA(s string) SampleA {
 	return SampleA{Id: s}
+}
+
+func NewAFromConfig(c Config) SampleA {
+	return SampleA{Id: strconv.Itoa(c.Id)}
 }
 
 func CallSampleA(i SampleA) {
 	fmt.Println(i.Id)
 }
 
+func GenerateConfig(lc fx.Lifecycle) Config {
+	lc.Append(fx.Hook{
+		OnStart: func(context.Context) error {
+			fmt.Println("start hook")
+			return nil
+		},
+		OnStop: func(context.Context) error {
+			fmt.Println("stop hook")
+			return nil
+		},
+	})
+	return Config{Id: 1}
+}
+
 func main() {
 	fx.New(
 		fx.Supply("example"),
-		fx.Provide(NewA),
+		fx.Provide(
+			GenerateConfig,
+			NewAFromConfig,
+		),
 		fx.Invoke(CallSampleA),
 		Submodule(),
 		SecondSubmodule(),
